@@ -1,0 +1,9 @@
+config:
+    QUEUE:
+        BROKER_URI: redis://:ESsikQ7wmtLXA56Ia8trqvkg9hfllaRw@SG-fluffy-book-3956-54641.servers.mongodirector.com:6379
+        BACKEND_URI: redis://:ESsikQ7wmtLXA56Ia8trqvkg9hfllaRw@SG-fluffy-book-3956-54641.servers.mongodirector.com:6379
+    POSTGRES:
+        URI: postgresql://klujxuymzkmkbb:743d6d5b5246498cc29d60c28866d2bea38a0491f729150507f0c210748def15@ec2-52-207-15-147.compute-1.amazonaws.com:5432/dei160vnf4rjtb
+    AZURE:
+        CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=testflask;AccountKey=8O+PiItvVlTM9DSt3CVEM4IH0thDkYykUQHKhEnyc79OukXztO/NimrWkwTozoV16dRq8xSSWUxv+AStVGr0RQ==;EndpointSuffix=core.windows.net
+    SECRET_KEY: C0mpl1caT3D̆

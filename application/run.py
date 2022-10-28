@@ -4,7 +4,7 @@ from typing import Dict
 
 from azure.storage.blob import BlobServiceClient
 
-from factory import create_app, db
+from factory import create_app
 from celery import Celery
 import yaml
 
@@ -31,17 +31,10 @@ def make_celery(app_name=__name__):
     )
 
 
-def getBlobServiceClient() -> BlobServiceClient:
-    print("Connecting to Azure Blob Storage")
-    connection_string = os.getenv("AZURE_CONNECTION_STRING")
-    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
-    print("Connected to Azure Blob Storage")
-    return blob_service_client
+
 
 
 celery_app = make_celery()
-conn = db
 print("Connecting Celery to Flask")
 app = create_app(celery=celery_app)
 print("Celery connected to Flask Successfully")
-blob_service = getBlobServiceClient()

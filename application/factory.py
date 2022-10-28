@@ -10,6 +10,7 @@ db = SQLAlchemy()
 
 
 def register_blueprints(app):
+    print("Registering Blueprints")
     from all import bp
     from tasks.transformation import transformation_controller
 
@@ -22,8 +23,10 @@ def create_app(app_name=PKG_NAME, **kwargs):
     app = Flask(app_name)
     app.config.from_pyfile("config.py")
 
+    print("Initialising Database")
     db.init_app(app)
     if kwargs.get("celery"):
         init_celery(kwargs.get("celery"), app)
     register_blueprints(app)
+    print("App Initialised")
     return app

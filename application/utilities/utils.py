@@ -1,9 +1,24 @@
 import os.path
 
-from run import db, blob_service
+from azure.storage.blob import BlobServiceClient
+
+from blobClient import BlobConnection
+from db import DBConnection
+
+
+def get_db_engine():
+    dbcon = DBConnection.getInstance()
+    return dbcon.get_engine()
+
+
+def get_blob_client() -> BlobServiceClient:
+    blobcon = BlobConnection.getInstance()
+    return blobcon.blob_client
 
 
 def get_transformation_file(file_name: str, container_name: str) -> str:
+    blob_service = get_blob_client()
+
     local_file_directory = os.environ.get("LOCAL_FILE_PATH", "files")
     blob_client_instance = blob_service.get_blob_client(
         container=container_name, blob=file_name

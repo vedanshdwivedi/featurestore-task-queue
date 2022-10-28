@@ -1,21 +1,29 @@
 from typing import Union, Dict
 import pandas as pd
 
-from run import db
+from run import celery_app
+from utilities.utils import get_db_engine
+
+engine = get_db_engine()
 
 
 def fetch_project_by_id(
     project_id: int,
 ) -> Dict[str, Union[str, int, Dict[str, Union[int, str]]]]:
     response_dict = {}
-    query = f"SELECT * FROM dt.projects WHERE project_id = {project_id}"
-    df = pd.read_sql(query, db)
+    query = f"SELECT * FROM dt.projects WHERE pid = {project_id}"
+    df = pd.read_sql(query, engine)
     if len(df) > 0:
         response_dict["project"] = df.to_dict(orient="records")[0]
     return response_dict
 
 
-def create_predictions(project_id: int, file_id: int) -> None:
-    project = fetch_project_by_id(project_id)
-    print(project)
-
+@celery_app.task()
+def create_predictions(project_id: int, file_id: int):
+    print("into create pred job")
+    try:
+        project = fetch_project_by_id(project_id)
+        return project
+    except Exception as ex:
+        # raise Exception(ex)
+        return f"Error : {ex}"

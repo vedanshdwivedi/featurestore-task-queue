@@ -6,10 +6,7 @@ transformation_controller = Blueprint("transform", __name__)
 
 @transformation_controller.route("/predict", methods=["POST"])
 def predict_outputs():
-    print(1)
     data = request.json
-    print(data)
-    print(2)
     try:
         project_id = data["project_id"]
         file_id = data["file_id"]

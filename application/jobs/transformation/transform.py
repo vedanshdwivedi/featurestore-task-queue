@@ -2,9 +2,10 @@ from typing import Union, Dict
 import pandas as pd
 
 from run import celery_app
-from utilities.utils import get_db_engine
+from utilities.utils import *
 
 engine = get_db_engine()
+blob = get_blob_client()
 
 
 def fetch_project_by_id(
@@ -20,7 +21,6 @@ def fetch_project_by_id(
 
 @celery_app.task()
 def create_predictions(project_id: int, file_id: int):
-    print("into create pred job")
     try:
         project = fetch_project_by_id(project_id)
         return project

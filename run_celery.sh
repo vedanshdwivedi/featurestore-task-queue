@@ -4,4 +4,4 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 cd application
-celery -A celery_worker.celery_app worker --loglevel=INFO --pool=solo --concurrency=6
+celery -A celery_worker.celery_app worker --loglevel=INFO --pool=solo --concurrency=2

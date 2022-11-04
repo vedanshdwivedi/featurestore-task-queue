@@ -1,4 +1,5 @@
 import os.path
+import shutil
 
 from azure.storage.blob import BlobServiceClient
 
@@ -14,6 +15,22 @@ def get_db_engine():
 def get_blob_client() -> BlobServiceClient:
     blobcon = BlobConnection.getInstance()
     return blobcon.blob_client
+
+
+def download_project_data_locally(project_id: int) -> None:
+    create_project_dir(project_id)
+
+
+def create_project_dir(project_id: int) -> None:
+    project_path = os.path.join("files", f"project-{project_id}")
+    if not os.path.exists(project_path):
+        os.mkdir(project_path)
+
+
+def del_project_dir(project_id: int) -> None:
+    project_path = os.path.join("files", f"project-{project_id}")
+    if os.path.exists(project_path):
+        shutil.rmtree(project_path)
 
 
 def get_transformation_file(file_name: str, container_name: str) -> str:

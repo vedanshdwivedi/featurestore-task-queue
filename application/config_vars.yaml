@@ -1,7 +1,7 @@
 config:
     QUEUE:
-        BROKER_URI: rediss://:6pQxRbAwWZvml8rFnHEjHlBJawsS3ZIH@SG-future-cent-1584-54684.servers.mongodirector.com:6379
-        BACKEND_URI: rediss://:6pQxRbAwWZvml8rFnHEjHlBJawsS3ZIH@SG-future-cent-1584-54684.servers.mongodirector.com:6379
+        BROKER_URI: rediss://:lwR4LLEyJ35DVsI9EmjxLT8I1UPgnTve@SG-bright-stag-357-54836.servers.mongodirector.com:6379
+        BACKEND_URI: rediss://:lwR4LLEyJ35DVsI9EmjxLT8I1UPgnTve@SG-bright-stag-357-54836.servers.mongodirector.com:6379
     POSTGRES:
         URI: postgresql://klujxuymzkmkbb:743d6d5b5246498cc29d60c28866d2bea38a0491f729150507f0c210748def15@ec2-52-207-15-147.compute-1.amazonaws.com:5432/dei160vnf4rjtb
     AZURE:

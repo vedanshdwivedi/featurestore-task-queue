@@ -1,4 +1,4 @@
-from typing import Union, Dict
+from typing import Union, Dict, List
 import pandas as pd
 
 from run import celery_app
@@ -19,11 +19,35 @@ def fetch_project_by_id(
     return response_dict
 
 
+def fetch_project_files_by_project_id(
+    project_id: int,
+) -> List[Dict[str, Union[int, str, bool]]]:
+    response_dict = {"files": []}
+    query = f"SELECT * FROM dt.files WHERE pid = {project_id} AND deleted = false"
+    df = pd.read_sql(query, engine)
+    if len(df) > 0:
+        response_dict["files"] = df.to_dict(orient="records")
+    return response_dict.get("files", [])
+
+
 @celery_app.task()
 def create_predictions(project_id: int, file_id: int):
     try:
-        project = fetch_project_by_id(project_id)
-        return project
+        create_project_dir(project_id)
+        file_list = fetch_project_files_by_project_id(project_id)
+        if len(file_list) > 0:
+            transformation_file = None
+            for file in file_list:
+                if file.get("file_category", "") == "TRANSFORMATION":
+                    transformation_file = file
+                    break
+            get_transformation_file(
+                project_id=project_id,
+                file_name=transformation_file.get("filename"),
+                container_name=transformation_file.get("container"),
+            )
     except Exception as ex:
-        # raise Exception(ex)
-        return f"Error : {ex}"
+        raise Exception(ex)
+    finally:
+        print("Completed Task")
+        del_project_dir(project_id)

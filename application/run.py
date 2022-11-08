@@ -1,12 +1,10 @@
-import os
 import ssl
 from typing import Dict
 
-from azure.storage.blob import BlobServiceClient
+import yaml
+from celery import Celery
 
 from factory import create_app
-from celery import Celery
-import yaml
 
 
 def get_backend_and_broker_url() -> Dict[str, str]:

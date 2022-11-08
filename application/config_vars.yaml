@@ -8,3 +8,9 @@ config:
         CONNECTION_STRING: DefaultEndpointsProtocol=https;AccountName=testflask;AccountKey=8O+PiItvVlTM9DSt3CVEM4IH0thDkYykUQHKhEnyc79OukXztO/NimrWkwTozoV16dRq8xSSWUxv+AStVGr0RQ==;EndpointSuffix=core.windows.net
     SECRET_KEY: C0mpl1caT3D̆
     LOCAL_FILE_PATH: files
+    EMAIL:
+        USERNAME: testcelery@gmail.com
+        PASSWORD: 6F050EAE1D496EAFBCA6C339DFD6DFBF28BE
+        SERVER: smtp.elasticemail.com
+        PORT: 2525
+        API_KEY: 2FB260CBFA07F8A095B56C9AA1E5E78D9145D15C1002D36FB2FA81C1D4F760B08EDABA47B833E925E7F9C5376F338747

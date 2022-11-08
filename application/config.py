@@ -23,3 +23,4 @@ os.environ["AZURE_CONNECTION_STRING"] = config_vars["config"]["AZURE"][
 ]
 os.environ["SECRET_KEY"] = config_vars["config"]["SECRET_KEY"]
 os.environ["LOCAL_FILE_PATH"] = config_vars["config"]["LOCAL_FILE_PATH"]
+os.environ["EMAIL_API_KEY"] = config_vars["config"]["EMAIL"]["API_KEY"]

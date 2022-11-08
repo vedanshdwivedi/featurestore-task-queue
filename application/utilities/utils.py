@@ -1,10 +1,28 @@
 import os.path
 import shutil
+from importlib.machinery import SourceFileLoader
 
+import pandas as pd
 from azure.storage.blob import BlobServiceClient
 
 from blobClient import BlobConnection
 from db import DBConnection
+
+import base64
+import hashlib
+import hmac
+import os
+import re
+
+
+def hash_string_using_secret_key(string_to_hash: str) -> str:
+    salt = os.getenv("SECRET_KEY")
+    dig = hmac.new(
+        bytes(salt, "utf-8"), bytes(string_to_hash, "utf-8"), digestmod=hashlib.sha256
+    ).digest()
+    key = base64.b64encode(dig).decode()
+    key = re.sub("\W+", "", key).lower()
+    return key
 
 
 def get_db_engine():
@@ -37,9 +55,25 @@ def del_project_dir(project_id: int) -> None:
         shutil.rmtree(project_path)
 
 
-def get_transformation_file(
-    project_id: int, file_name: str, container_name: str
-) -> str:
+def get_initialised_tranformation_object(project_id: int, dataset_path: str):
+    project_folder = os.path.join(
+        os.environ.get("LOCAL_FILE_PATH", "files"), f"project-{project_id}"
+    )
+    transformation_file_path = os.path.join(project_folder, "transformation.py")
+    try:
+        transformation_object = (
+            SourceFileLoader("transformation", transformation_file_path)
+            .load_module()
+            .Transformation(dataset_path)
+        )
+        return transformation_object
+    except Exception as ex:
+        raise Exception(
+            f"[utils][get_initialised_tranformation_object] Unable to initialize Tranformation Class : {ex}"
+        )
+
+
+def download_blob_locally(project_id: int, file_name: str, container_name: str) -> str:
     if project_id is None or file_name is None or container_name is None:
         raise ValueError(
             "[UTILS][get_transformation_file] project_id, file_name or container name can't be none"
@@ -54,12 +88,41 @@ def get_transformation_file(
     download_path = os.path.join(
         local_file_directory, f"project-{project_id}", file_name
     )
-    if not os.path.exists(local_file_directory):
-        os.mkdir(local_file_directory)
-    bytes = blob_client_instance.download_blob().readall()
-    with open(download_path, "wb") as file:
-        file.write(bytes)
-    return download_path
+    try:
+        if not os.path.exists(local_file_directory):
+            os.mkdir(local_file_directory)
+        bytes = blob_client_instance.download_blob().readall()
+        with open(download_path, "wb") as file:
+            file.write(bytes)
+        return download_path
+    except Exception as ex:
+        raise Exception(ex)
+
+
+def save_dataset_locally(df: pd.DataFrame, project_id: int, filename: str) -> None:
+    project_folder = os.path.join(
+        os.environ.get("LOCAL_FILE_PATH", "files"), f"project-{project_id}"
+    )
+    file_path = os.path.join(project_folder, filename)
+    if not os.path.exists(project_folder):
+        os.mkdir(project_folder)
+    try:
+        df.to_excel(file_path)
+    except Exception as ex:
+        raise Exception(
+            f"[UTILS][save_dataset_locally] Unable to save dataframe as xlsx : {ex}"
+        )
+
+
+def upload_dataset_to_blob(dataset_path: str, project_id: int) -> str:
+    container_name = f"project-{project_id}"
+    container = hash_string_using_secret_key(container_name)
+    blob_client = get_blob_client()
+    uploader = blob_client.get_blob_client(container=container, blob=dataset_path)
+    with open(dataset_path, "rb") as data:
+        uploader.upload_blob(data, overwrite=True)
+        url = uploader.url
+    return url
 
 
 def delete_file(filename: str) -> None:

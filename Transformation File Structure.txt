@@ -1,0 +1,15 @@
+Transformation:
+    __init__(self, dataset_path):
+        pass
+
+    load_dataset(self, dataset_path):
+        pass
+
+    transform(self, dataset_path) -> pd.DataFrame:
+        pass
+
+    train_model(self, model_path):
+        pass
+
+    impute(self, dataset_path) -> pd.DataFrame:
+        pass

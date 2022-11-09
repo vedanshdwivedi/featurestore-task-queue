@@ -1,4 +1,4 @@
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 
 from emailClient import EmailConnection
 from run import celery_app
@@ -31,19 +31,22 @@ def fetch_project_files_by_project_id(
 
 
 def run_prediction_pipeline(
-    project_id: int, prediction_filename: Union[str, None]
+    project_id: int,
+    prediction_filename: Union[str, None],
+    model_filename: Union[str, None],
 ) -> Union[None, pd.DataFrame]:
-    if prediction_filename is None:
+    if prediction_filename is None or model_filename is None:
         return None
     project_folder = os.path.join(
         os.environ.get("LOCAL_FILE_PATH", "files"), f"project-{project_id}"
     )
     prediction_dataset_path = os.path.join(project_folder, prediction_filename)
+    model_path = os.path.join(project_folder, model_filename)
     try:
         transformer = get_initialised_tranformation_object(
             project_id=project_id, dataset_path=prediction_dataset_path
         )
-        df = transformer.impute()
+        df = transformer.impute(model_path, prediction_dataset_path)
         return df
     except Exception as ex:
         raise Exception(
@@ -51,46 +54,43 @@ def run_prediction_pipeline(
         )
 
 
-def download_project_files_locally(project_id: int) -> Union[str, None]:
+def download_project_files_locally(
+    project_id: int,
+) -> Tuple[Union[str, None], Union[str, None]]:
     prediction_filename = None
+    model_filename = None
     file_list = fetch_project_files_by_project_id(project_id)
     if len(file_list) > 0:
         transformation_file = None
         prediction_file = None
+        model_file = None
         for file in file_list:
             if file.get("file_category", "") == "TRANSFORMATION":
                 transformation_file = file
             if file.get("file_category") == "PREDICTION_DATASET":
                 prediction_file = file
+                prediction_filename = prediction_file.get("filename")
+            if file.get("file_category") == "MODEL":
+                model_file = file
+                model_filename = model_file.get("filename")
         if prediction_file is not None:
-            prediction_filename = prediction_file.get("filename")
-            for file in [prediction_file, transformation_file]:
+            for file in [prediction_file, transformation_file, model_file]:
                 download_blob_locally(
                     project_id=project_id,
                     file_name=file.get("filename"),
                     container_name=file.get("container"),
                 )
-    return prediction_filename
+    return prediction_filename, model_filename
 
 
 def create_file_metadata_postgres(
     project_id: int, file_name: str, file_type: str, url: str
 ) -> None:
     container = hash_string_using_secret_key(f"project-{project_id}")
-    query = """insert into dt.files (pid, filename, file_category, container, metadata, download_link) 
-    values (%(project_id)s, %(filename)s, %(filetype)s, %(container)s, %(metadata)s, %(url)s)"""
+    query = f"""insert into dt.files (pid, filename, file_category, container, download_link) 
+    values ({project_id}, '{file_name}', '{file_type}', '{container}', '{url}')"""
     try:
-        engine.execute(
-            query
-            % {
-                "project_id": project_id,
-                "filename": file_name,
-                "file_category": file_type,
-                "container": container,
-                "metadata": {},
-                "download_link": url,
-            }
-        )
+        engine.execute(query)
     except Exception as ex:
         raise Exception(
             f"[JOBS][transform][create_file_metadata_postgres] Unable to create file metadata : {ex} "
@@ -116,15 +116,17 @@ def send_notification_email(
                     put a remark on the project and stating the reason [{exception}] to your developer.
                     We regret the inconvenience caused. 
                 """
-    email_client.send_email(receipient=project_email, subject=subject, body=body)
+    email_client.send_email(receipient=project_email, subject=subject, content=body)
 
 
 @celery_app.task()
 def run_prediction_jobs(project_id: int):
     try:
         create_project_dir(project_id)
-        prediction_filename = download_project_files_locally(project_id)
-        predicted_dataset = run_prediction_pipeline(project_id, prediction_filename)
+        prediction_filename, model_filename = download_project_files_locally(project_id)
+        predicted_dataset = run_prediction_pipeline(
+            project_id, prediction_filename, model_filename
+        )
         save_dataset_locally(
             df=predicted_dataset, project_id=project_id, filename="predictions.xlsx"
         )

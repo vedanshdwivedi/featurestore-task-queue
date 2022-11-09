@@ -3,13 +3,19 @@ Transformation:
         pass
 
     load_dataset(self, dataset_path):
-        pass
+        return pd.DataFrame
+
+    load_model(self, model_path):
+        return model
+
+    install_requirements():
+        return None
 
     transform(self, dataset_path) -> pd.DataFrame:
-        pass
+        return pd.DataFrame
 
     train_model(self, model_path):
-        pass
+        return None
 
     impute(self, dataset_path) -> pd.DataFrame:
-        pass
+        return pd.DataFrame

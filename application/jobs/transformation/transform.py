@@ -83,9 +83,33 @@ def download_project_files_locally(
     return prediction_filename, model_filename
 
 
+def fetch_project_files_by_type(project_id: int, file_type: str) -> pd.DataFrame:
+    query = f"""SELECT * FROM dt.files WHERE pid = {project_id} AND file_category = '{file_type}' 
+                AND deleted = false"""
+    try:
+        df = pd.read_sql(query, engine)
+    except Exception as ex:
+        raise Exception(ex)
+    return df
+
+
+def soft_delete_files(file_id: List[int]):
+    file_id = [int(x) for x in file_id]
+    file_id_list = str(file_id).strip("[]")
+    query = f"""UPDATE dt.files SET deleted = true WHERE fid in ({file_id_list})"""
+    try:
+        engine.execute(query)
+    except Exception as ex:
+        raise Exception(ex)
+
+
 def create_file_metadata_postgres(
     project_id: int, file_name: str, file_type: str, url: str
 ) -> None:
+    existing_files = fetch_project_files_by_type(project_id, file_type)
+    if len(existing_files) > 0:
+        file_id_list = existing_files["fid"].unique().tolist()
+        soft_delete_files(file_id_list)
     container = hash_string_using_secret_key(f"project-{project_id}")
     query = f"""insert into dt.files (pid, filename, file_category, container, download_link) 
     values ({project_id}, '{file_name}', '{file_type}', '{container}', '{url}')"""

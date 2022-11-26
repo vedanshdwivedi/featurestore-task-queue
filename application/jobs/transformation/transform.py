@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Union, Dict, List, Tuple
 
 from emailClient import EmailConnection
@@ -103,6 +104,18 @@ def soft_delete_files(file_id: List[int]):
         raise Exception(ex)
 
 
+def update_task_request_metadata(request_id: int, status: str) -> None:
+    query = (
+        f"""UPDATE dt.task_queue SET status='{status}' WHERE task_id = {request_id}"""
+    )
+    try:
+        engine.execute(query)
+    except Exception as ex:
+        raise Exception(
+            f"[JOBS][transform][update_task_request_metadata] Unable to update request metadata : {ex} "
+        )
+
+
 def create_file_metadata_postgres(
     project_id: int, file_name: str, file_type: str, url: str
 ) -> None:
@@ -144,7 +157,7 @@ def send_notification_email(
 
 
 @celery_app.task()
-def run_prediction_jobs(project_id: int):
+def run_prediction_jobs(project_id: int, request_id: int):
     try:
         create_project_dir(project_id)
         prediction_filename, model_filename = download_project_files_locally(project_id)
@@ -186,3 +199,4 @@ def run_prediction_jobs(project_id: int):
         raise Exception(ex)
     finally:
         del_project_dir(project_id)
+        update_task_request_metadata(request_id, "COMPLETED")

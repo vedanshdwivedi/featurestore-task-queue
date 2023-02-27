@@ -6,6 +6,7 @@ import os.path
 import re
 import shutil
 from importlib.machinery import SourceFileLoader
+from jobs.TransformationBase import TransformationBase
 
 import pandas as pd
 from azure.storage.blob import BlobServiceClient
@@ -27,6 +28,10 @@ def hash_string_using_secret_key(string_to_hash: str) -> str:
 def get_db_engine():
     dbcon = DBConnection.getInstance()
     return dbcon.get_engine()
+
+def get_mongo_client():
+    dbcon = DBConnection.getInstance()
+    return dbcon.get_mongo_engine()
 
 
 def get_blob_client() -> BlobServiceClient:
@@ -53,7 +58,6 @@ def del_project_dir(project_id: int) -> None:
     if os.path.exists(project_path):
         shutil.rmtree(project_path)
 
-
 def get_initialised_tranformation_object(project_id: int, dataset_path: str):
     project_folder = os.path.join(
         os.environ.get("LOCAL_FILE_PATH", "files"), f"project-{project_id}"
@@ -65,7 +69,8 @@ def get_initialised_tranformation_object(project_id: int, dataset_path: str):
             .load_module()
             .Transformation(dataset_path)
         )
-        return transformation_object
+        tclass = TransformationBase(transformation_object)
+        return tclass
     except Exception as ex:
         raise Exception(
             f"[utils][get_initialised_tranformation_object] Unable to initialize Tranformation Class : {ex}"

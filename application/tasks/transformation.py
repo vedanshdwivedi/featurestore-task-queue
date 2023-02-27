@@ -21,3 +21,13 @@ def predict_outputs():
         return make_response(
             jsonify({"task_response": f"Error in executing : {ex}"}), 400
         )
+
+@transformation_controller.route("/xgbregressor/model", methods=["POST"])
+def predict_xgbregressor():
+    try:
+        print("XGB Regressor Pipeline")
+        return make_response(jsonify({"task response": "Task Started"}), 200)
+    except Exception as ex:
+        return make_response(
+            jsonify({"task_response": f"Error in executing : {ex}"}), 400
+        )

@@ -66,11 +66,14 @@ def download_project_files_locally(
         prediction_file = None
         model_file = None
         for file in file_list:
+            # developers
             if file.get("file_category", "") == "TRANSFORMATION":
                 transformation_file = file
+            # user
             if file.get("file_category") == "PREDICTION_DATASET":
                 prediction_file = file
                 prediction_filename = prediction_file.get("filename")
+            # developers
             if file.get("file_category") == "MODEL":
                 model_file = file
                 model_filename = model_file.get("filename")

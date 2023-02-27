@@ -1,3 +1,4 @@
+import os
 import ssl
 from typing import Dict
 
@@ -5,6 +6,7 @@ import yaml
 from celery import Celery
 
 from factory import create_app
+import segment.analytics as analytics
 
 
 def get_backend_and_broker_url() -> Dict[str, str]:

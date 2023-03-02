@@ -3,8 +3,8 @@ import json
 from flask import Blueprint, request, make_response, jsonify
 from jobs.xgboostregressor.xgbregressor import XGBRegressorPipeline
 
-
 xgboost_controller = Blueprint("transform", __name__)
+
 
 @xgboost_controller.route("/train", methods=["POST"])
 def train():
@@ -15,11 +15,9 @@ def train():
             data = json.loads(data)
         project_id = int(data["projectId"])
         pipeline = XGBRegressorPipeline(project_id)
-        data = pipeline.getProjectData()
-        settings = pipeline.getProjectSettings()
-        files = pipeline.getProjectFiles()
+        pipeline.trainModel()
         # run_prediction_jobs.delay(project_id=project_id, request_id=task_id)
-        return make_response(jsonify({"task response": f"Training Task Started", "files": files, "data": data, "settings": settings}), 200)
+        return make_response(jsonify({"task response": f"Training Task Started", "data": data}), 200)
     except Exception as ex:
         return make_response(
             jsonify({"task_response": f"Error in executing : {ex}"}), 400
@@ -36,4 +34,3 @@ def predict():
         return make_response(
             jsonify({"task_response": f"Error in executing : {ex}"}), 400
         )
-

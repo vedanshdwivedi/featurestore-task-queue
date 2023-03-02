@@ -7,18 +7,18 @@ class TransformationBase:
     def __init__(self, TransformClass):
         self.transform = TransformClass
 
-    def loadDataset(self) -> pd.DataFrame:
+    def loadDataset(self, datasetPath: str) -> pd.DataFrame:
         # loadDataset() is a required member function in Transformation Class
         try:
-            df = self.transform.loadDatset()
+            df = self.transform.loadDatset(datasetPath)
         except Exception as ex:
             raise Exception(f"Error in loading Dataset : {ex}")
         return df
 
-    def transformDataset(self) -> pd.DataFrame:
+    def transformDataset(self, datasetPath: str) -> pd.DataFrame:
         # transform() is a required member function in Transformation Class
         try:
-            df = self.transform.transform()
+            df = self.transform.transform(datasetPath)
         except Exception as ex:
             raise Exception(f"Error in Transforming Datatset : {ex}")
         return df

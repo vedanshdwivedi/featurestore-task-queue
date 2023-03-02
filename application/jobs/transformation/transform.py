@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Union, Dict, List, Tuple
 
-from emailClient import EmailConnection
 from run import celery_app
 from utilities.utils import *
 
@@ -10,7 +9,7 @@ blob = get_blob_client()
 
 
 def fetch_project_by_id(
-    project_id: int,
+        project_id: int,
 ) -> Dict[str, Union[str, int, Dict[str, Union[int, str]]]]:
     response_dict = {}
     query = f"SELECT * FROM dt.projects WHERE pid = {project_id}"
@@ -21,7 +20,7 @@ def fetch_project_by_id(
 
 
 def fetch_project_files_by_project_id(
-    project_id: int,
+        project_id: int,
 ) -> List[Dict[str, Union[int, str, bool]]]:
     response_dict = {"files": []}
     query = f"SELECT * FROM dt.files WHERE pid = {project_id} AND deleted = false"
@@ -32,9 +31,9 @@ def fetch_project_files_by_project_id(
 
 
 def run_prediction_pipeline(
-    project_id: int,
-    prediction_filename: Union[str, None],
-    model_filename: Union[str, None],
+        project_id: int,
+        prediction_filename: Union[str, None],
+        model_filename: Union[str, None],
 ) -> Union[None, pd.DataFrame]:
     if prediction_filename is None or model_filename is None:
         return None
@@ -56,7 +55,7 @@ def run_prediction_pipeline(
 
 
 def download_project_files_locally(
-    project_id: int,
+        project_id: int,
 ) -> Tuple[Union[str, None], Union[str, None]]:
     prediction_filename = None
     model_filename = None
@@ -120,7 +119,7 @@ def update_task_request_metadata(request_id: int, status: str) -> None:
 
 
 def create_file_metadata_postgres(
-    project_id: int, file_name: str, file_type: str, url: str
+        project_id: int, file_name: str, file_type: str, url: str
 ) -> None:
     existing_files = fetch_project_files_by_type(project_id, file_type)
     if len(existing_files) > 0:
@@ -135,28 +134,6 @@ def create_file_metadata_postgres(
         raise Exception(
             f"[JOBS][transform][create_file_metadata_postgres] Unable to create file metadata : {ex} "
         )
-
-
-def send_notification_email(
-    project_id: int, success: bool = True, exception: str = None
-) -> None:
-    project = fetch_project_by_id(project_id)
-    project_email = project["project"].get("notification")
-    email_client = EmailConnection.getInstance()
-    if success:
-        subject = "Predictions have been uploaded"
-        body = f"""You requested for predictions for the project : {project['project']['project_name']}. 
-                    This is to notify you that your predictions have been uploaded for the project and 
-                    can be downloaded from the projects page.
-                """
-    else:
-        subject = "Predictions Failed"
-        body = f"""You requested for predictions for the project : {project['project']['project_name']}. 
-                    This is to notify you that your predictions can't be generated. We request you to 
-                    put a remark on the project and stating the reason [{exception}] to your developer.
-                    We regret the inconvenience caused. 
-                """
-    email_client.send_email(receipient=project_email, subject=subject, content=body)
 
 
 @celery_app.task()

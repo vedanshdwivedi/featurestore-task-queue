@@ -6,6 +6,8 @@ import os.path
 import re
 import shutil
 from importlib.machinery import SourceFileLoader
+from typing import Dict, Any
+
 from jobs.TransformationBase import TransformationBase
 
 import pandas as pd
@@ -28,6 +30,7 @@ def hash_string_using_secret_key(string_to_hash: str) -> str:
 def get_db_engine():
     dbcon = DBConnection.getInstance()
     return dbcon.get_engine()
+
 
 def get_mongo_client():
     dbcon = DBConnection.getInstance()
@@ -57,6 +60,7 @@ def del_project_dir(project_id: int) -> None:
     )
     if os.path.exists(project_path):
         shutil.rmtree(project_path)
+
 
 def get_initialised_tranformation_object(project_id: int, dataset_path: str):
     project_folder = os.path.join(
@@ -118,9 +122,7 @@ def save_dataset_locally(df: pd.DataFrame, project_id: int, filename: str) -> No
         )
 
 
-def upload_dataset_to_blob(dataset_path: str, project_id: int) -> str:
-    container_name = f"project-{project_id}"
-    container = hash_string_using_secret_key(container_name)
+def upload_dataset_to_blob(dataset_path: str, container: str) -> str:
     blob_client = get_blob_client()
     uploader = blob_client.get_blob_client(container=container, blob=dataset_path)
     with open(dataset_path, "rb") as data:

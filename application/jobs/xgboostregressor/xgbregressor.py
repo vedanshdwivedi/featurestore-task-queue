@@ -5,7 +5,7 @@ import joblib
 
 from utilities.utils import *
 from jobs.Projects import getProjectData, getProjectSettings, getProjectFiles, updateProjectSettings
-from jobs.Files import create_file_entry_in_postgres
+from jobs.Files import create_file_entry_in_postgres, handle_existing_file_metadata_delete_by_category
 from skforecast.ForecasterAutoreg import ForecasterAutoreg
 from jobs.TransformationBase import TransformationBase
 from skforecast.model_selection import grid_search_forecaster
@@ -122,6 +122,7 @@ class XGBRegressorPipeline:
             downloadLink = upload_dataset_to_blob(os.path.join(os.environ.get("LOCAL_FILE_PATH", "files"), f"project-"
                                                                                                            f"{self.projectId}",
                                                                "model.pkl"), self.project_data["container"])
+            handle_existing_file_metadata_delete_by_category(self.projectId, "MODEL")
             create_file_entry_in_postgres(self.projectId, "model.pkl", self.project_data["container"], downloadLink,
                                           "MODEL")
             self.project_settings["ready"] = True

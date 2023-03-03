@@ -38,6 +38,7 @@ def getProjectSettings(projectId: int) -> Dict[str, Union[str, int, Dict, List[s
 
 def updateProjectSettings(projectId: int, settings: Dict[str, Union[str, int, Dict, List[str]]]) -> None:
     try:
+        del settings["_id"]
         mongoClient.db.settings.update_one({"projectId": projectId}, {"$set": settings})
     except Exception as ex:
         raise Exception(f"Failed to update Project Settings : {ex}")
